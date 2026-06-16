@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rosália Lab — ML Analyzer</title>
+<style>
+:root {
+  --bg: #0f0f11;
+  --bg2: #1a1a1f;
+  --bg3: #24242b;
+  --border: #2e2e38;
+  --text: #f0eff5;
+  --muted: #8b8a9a;
+  --accent: #f5e642;
+  --purple: #7c5cbf;
+  --green: #3ecf8e;
+  --red: #f05252;
+  --orange: #f5a623;
+  --blue: #4fa3e0;
+  --r: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.6; }
+.header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+.logo { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+.logo em { color: var(--accent); font-style: normal; }
+.badge { background: var(--purple); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; letter-spacing: 1px; }
+.pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; }
+.pill-g { background: rgba(62,207,142,.15); color: var(--green); }
+.pill-r { background: rgba(240,82,82,.15); color: var(--red); }
+.pill-o { background: rgba(245,166,35,.15); color: var(--orange); }
+.pill-b { background: rgba(79,163,224,.15); color: var(--blue); }
+.pill-p { background: rgba(124,92,191,.15); color: #b39ddb; }
+.wrap { max-width: 1060px; margin: 0 auto; padding: 24px 16px; }
+.card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); padding: 18px; margin-bottom: 16px; }
+.card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 12px; }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+input, select, textarea { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 13px; padding: 9px 13px; width: 100%; outline: none; font-family: inherit; }
+input:focus, select:focus, textarea:focus { border-color: var(--purple); }
+input::placeholder, textarea::placeholder { color: var(--muted); }
+.row { display: flex; gap: 8px; }
+.btn { background: var(--accent); color: #111; font-weight: 700; font-size: 13px; border: none; border-radius: 8px; padding: 9px 18px; cursor: pointer; white-space: nowrap; font-family: inherit; transition: opacity .15s; }
+.btn:hover { opacity: .85; }
+.btn:disabled { opacity: .35; cursor: not-allowed; }
+.btn-p { background: var(--purple); color: #fff; }
+.btn-g { background: var(--bg3); color: var(--text); border: 1px solid var(--border); }
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 18px; }
+.tab { padding: 9px 15px; font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .15s; }
+.tab.on { color: var(--accent); border-bottom-color: var(--accent); }
+.pane { display: none; }
+.pane.on { display: block; }
+.stat { text-align: center; padding: 4px; }
+.stat-v { font-size: 24px; font-weight: 800; line-height: 1.1; margin-bottom: 3px; }
+.stat-l { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.irow { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background .1s; }
+.irow:hover { background: var(--bg3); }
+.irow:last-child { border-bottom: none; }
+.ithumb { width: 48px; height: 48px; border-radius: 7px; background: var(--bg3); flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 18px; }
+.ithumb img { width: 100%; height: 100%; object-fit: cover; }
+.iinfo { flex: 1; min-width: 0; }
+.ititle { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 5px; }
+.imeta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.iprice { font-size: 14px; font-weight: 800; color: var(--accent); }
+.sring { width: 48px; height: 48px; border-radius: 50%; border: 3px solid; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; flex-shrink: 0; }
+.sa { border-color: var(--green); color: var(--green); }
+.sb { border-color: var(--orange); color: var(--orange); }
+.sc { border-color: var(--red); color: var(--red); }
+.diag { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.diag:last-child { border-bottom: none; }
+.dico { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; margin-top: 2px; }
+.dok { background: rgba(62,207,142,.15); }
+.dwarn { background: rgba(245,166,35,.15); }
+.derr { background: rgba(240,82,82,.15); }
+.dlabel { font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 1px; }
+.dtext { font-size: 12px; line-height: 1.5; }
+.crow { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.crow:last-child { border-bottom: none; }
+.cpos { width: 22px; text-align: center; font-size: 12px; font-weight: 700; color: var(--muted); flex-shrink: 0; }
+.cpos.top { color: var(--accent); }
+.cinfo { flex: 1; min-width: 0; }
+.ctitle { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+.ai-box { background: linear-gradient(135deg, rgba(124,92,191,.12), rgba(79,163,224,.08)); border: 1px solid rgba(124,92,191,.3); border-radius: var(--r); padding: 16px; margin-top: 14px; }
+.ai-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #b39ddb; margin-bottom: 8px; }
+.ai-txt { font-size: 13px; line-height: 1.75; white-space: pre-wrap; }
+.spin { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: sp .6s linear infinite; vertical-align: middle; margin-right: 6px; }
+@keyframes sp { to { transform: rotate(360deg); } }
+.load { color: var(--muted); padding: 28px; text-align: center; }
+.empty { color: var(--muted); padding: 36px; text-align: center; }
+.empty-ico { font-size: 28px; margin-bottom: 8px; }
+.bar { height: 5px; background: var(--bg3); border-radius: 3px; overflow: hidden; margin-top: 5px; }
+.barfill { height: 100%; border-radius: 3px; }
+.kw { display: inline-block; border-radius: 6px; padding: 3px 9px; font-size: 11px; margin: 2px; border: 1px solid var(--border); background: var(--bg3); cursor: default; }
+.kw-p { border-color: var(--green); background: rgba(62,207,142,.08); color: var(--green); }
+.kw-m { border-color: var(--red); background: rgba(240,82,82,.08); color: var(--red); }
+.panel { position: fixed; top: 0; right: -520px; width: 500px; height: 100vh; background: var(--bg2); border-left: 1px solid var(--border); overflow-y: auto; transition: right .3s; z-index: 100; padding: 20px; }
+.panel.open { right: 0; }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 99; display: none; }
+.overlay.show { display: block; }
+.phead { position: sticky; top: -20px; background: var(--bg2); padding: 4px 0 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+#status { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+#sdot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+#stxt { font-size: 11px; color: var(--muted); }
+@media(max-width:680px){ .g2,.g3{grid-template-columns:1fr;} .panel{width:100%;right:-100%;} }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo">Rosália<em>Lab</em></div>
+  <div class="badge">ML ANALYZER</div>
+  <div id="status"><div id="sdot"></div><span id="stxt">Desconectado</span></div>
+</div>
+
+<div class="wrap">
+  <!-- Config -->
+  <div class="card">
+    <div class="card-title">⚙️ Configuração</div>
+    <div class="g2">
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:5px;">Seller ID numérico da conta</div>
+        <div class="row">
+          <input id="sid" type="text" placeholder="Ex: 123456789" value="180615665">
+          <button class="btn" id="btncon" onclick="conectar()">Conectar</button>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:5px;">Não sabe seu Seller ID? <a href="#" onclick="ajudaId()" style="color:var(--accent);">Clique aqui</a></div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:5px;">Access Token (para dados privados)</div>
+        <input id="tok" type="password" value="APP_USR-5948512008763346-061520-04cf177edde3309b6e0e6a1ddfb128f9-180615665">
+        <div style="font-size:11px;color:var(--muted);margin-top:5px;">Sem token: dados públicos · Com token: métricas completas</div>
+      </div>
+    </div>
+    <div id="msg-config" style="margin-top:10px;font-size:12px;"></div>
+  </div>
+
+  <!-- Stats -->
+  <div class="g3" id="stats" style="display:none;margin-bottom:16px;">
+    <div class="card stat"><div class="stat-v" id="s-tot" style="color:var(--accent)">—</div><div class="stat-l">Anúncios ativos</div></div>
+    <div class="card stat"><div class="stat-v" id="s-score" style="color:var(--green)">—</div><div class="stat-l">Score médio</div></div>
+    <div class="card stat"><div class="stat-v" id="s-alert" style="color:var(--red)">—</div><div class="stat-l">Alertas críticos</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab on" onclick="tab('anuncios',this)">Meus Anúncios</div>
+    <div class="tab" onclick="tab('categoria',this)">Análise de Categoria</div>
+    <div class="tab" onclick="tab('concorrentes',this)">Concorrentes</div>
+    <div class="tab" onclick="tab('keywords',this)">Palavras-chave</div>
+  </div>
+
+  <!-- Anúncios -->
+  <div id="pane-anuncios" class="pane on">
+    <div id="a-empty" class="empty"><div class="empty-ico">🛒</div>Conecte uma conta para ver os anúncios</div>
+    <div id="a-load" class="load" style="display:none"><span class="spin"></span>Carregando anúncios...</div>
+    <div id="a-list" style="display:none">
+      <div class="row" style="margin-bottom:14px;">
+        <input id="a-search" type="text" placeholder="Filtrar..." style="max-width:260px;" oninput="filtrar()">
+        <select id="a-filter" onchange="filtrar()" style="width:auto;">
+          <option value="">Todos</option>
+          <option value="A">Score A</option>
+          <option value="B">Score B</option>
+          <option value="C">Score C</option>
+        </select>
+        <button class="btn btn-p" onclick="iaPortfolio()" style="margin-left:auto;">✨ Análise geral IA</button>
+      </div>
+      <div id="ia-portfolio"></div>
+      <div id="a-items" class="card" style="padding:0;overflow:hidden;"></div>
+    </div>
+  </div>
+
+  <!-- Categoria -->
+  <div id="pane-categoria" class="pane">
+    <div class="card">
+      <div class="card-title">🔍 Buscar categoria / produto</div>
+      <div class="row">
+        <input id="q-cat" type="text" placeholder="Ex: jaleco feminino, cadeira gamer...">
+        <button class="btn" onclick="buscarCat()">Buscar</button>
+      </div>
+    </div>
+    <div id="res-cat"></div>
+  </div>
+
+  <!-- Concorrentes -->
+  <div id="pane-concorrentes" class="pane">
+    <div class="card">
+      <div class="card-title">🏆 Top vendedores da 1ª página</div>
+      <div class="row">
+        <input id="q-comp" type="text" placeholder="Busque um produto para ver quem domina">
+        <button class="btn" onclick="buscarComp()">Analisar</button>
+      </div>
+    </div>
+    <div id="res-comp"></div>
+  </div>
+
+  <!-- Keywords -->
+  <div id="pane-keywords" class="pane">
+    <div class="card">
+      <div class="card-title">🔑 Palavras-chave</div>
+      <div class="row">
+        <input id="q-kw" type="text" placeholder="Nome do produto ou categoria">
+        <button class="btn" onclick="buscarKw()">Analisar</button>
+      </div>
+    </div>
+    <div id="res-kw"></div>
+  </div>
+</div>
+
+<!-- Painel detalhe -->
+<div class="overlay" id="ov" onclick="closePanel()"></div>
+<div class="panel" id="panel">
+  <div class="phead">
+    <b>Diagnóstico do anúncio</b>
+    <button class="btn btn-g" onclick="closePanel()" style="padding:5px 11px;">✕</button>
+  </div>
+  <div id="panel-body"></div>
+</div>
+
+<script>
+const API = 'https://api.mercadolibre.com';
+const CLAUDE = 'https://api.anthropic.com/v1/messages';
+let anuncios = [], filtered = [], sellerId = null;
+
+// ── utilidades ──
+const $ = id => document.getElementById(id);
+const fmt = n => 'R$ ' + Number(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const html = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+function setStatus(color, txt) {
+  $('sdot').style.background = color;
+  $('stxt').textContent = txt;
+}
+
+function tab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
+  el.classList.add('on');
+  $('pane-' + name).classList.add('on');
+}
+
+function openPanel() { $('panel').classList.add('open'); $('ov').classList.add('show'); }
+function closePanel() { $('panel').classList.remove('open'); $('ov').classList.remove('show'); }
+
+// ── Ajuda Seller ID ──
+function ajudaId() {
+  $('msg-config').innerHTML = `
+    <div style="background:var(--bg3);border-radius:8px;padding:12px;border:1px solid var(--border);">
+      <b>Como encontrar seu Seller ID:</b><br>
+      1. Abra o navegador e acesse:<br>
+      <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px;">https://api.mercadolibre.com/users/search?nickname=ROSALIA-LAB</code><br>
+      2. Copie o número do campo <b>"id"</b> que aparecer<br>
+      3. Cole no campo acima e clique Conectar
+    </div>`;
+}
+
+// ── Score ──
+function score(item) {
+  let p = 0, checks = [];
+  const tl = (item.title||'').length;
+  if (tl>=60){p+=25;checks.push({ok:1,l:'Título',t:`${tl} chars — ótimo`});}
+  else if(tl>=40){p+=15;checks.push({ok:0.5,l:'Título',t:`${tl} chars — curto (ideal 60+)`});}
+  else{p+=5;checks.push({ok:0,l:'Título',t:`${tl} chars — muito curto!`});}
+
+  const np=(item.pictures||[]).length;
+  if(np>=8){p+=20;checks.push({ok:1,l:'Fotos',t:`${np} fotos — excelente`});}
+  else if(np>=4){p+=12;checks.push({ok:0.5,l:'Fotos',t:`${np} fotos — adicione mais (ideal 8+)`});}
+  else{p+=4;checks.push({ok:0,l:'Fotos',t:`${np} foto(s) — crítico! ML penaliza`});}
+
+  const fg=item.shipping&&item.shipping.free_shipping;
+  if(fg){p+=20;checks.push({ok:1,l:'Frete',t:'Frete grátis — ótimo para ranking'});}
+  else{checks.push({ok:0,l:'Frete',t:'Sem frete grátis — impacto negativo no ranking'});}
+
+  const na=(item.attributes||[]).length;
+  if(na>=10){p+=20;checks.push({ok:1,l:'Atributos',t:`${na} atributos — ótimo`});}
+  else if(na>=5){p+=12;checks.push({ok:0.5,l:'Atributos',t:`${na} atributos — preencha todos`});}
+  else{p+=4;checks.push({ok:0,l:'Atributos',t:`${na} atributos — crítico! Prejudica indexação`});}
+
+  if(item.condition==='new'){p+=10;checks.push({ok:1,l:'Condição',t:'Novo — correto'});}
+  else{checks.push({ok:0.5,l:'Condição',t:'Usado — verifique se está correto'});}
+
+  if(item.status==='active'){p+=5;checks.push({ok:1,l:'Status',t:'Ativo'});}
+  else{checks.push({ok:0,l:'Status',t:`${item.status} — inativo!`});}
+
+  const v=Math.min(100,Math.round(p/100*100));
+  const l=v>=75?'A':v>=50?'B':'C';
+  return {v,l,checks};
+}
+
+function scoreClass(l){return l==='A'?'sa':l==='B'?'sb':'sc';}
+function scoreColor(l){return l==='A'?'var(--green)':l==='B'?'var(--orange)':'var(--red)';}
+
+// ── Conectar ──
+async function conectar() {
+  const sid = $('sid').value.trim();
+  if (!sid) { $('msg-config').innerHTML='<span style="color:var(--red)">Informe o Seller ID</span>'; return; }
+
+  setStatus('var(--orange)', 'Conectando...');
+  $('msg-config').innerHTML = '<span class="spin"></span>Conectando...';
+  $('btncon').disabled = true;
+
+  try {
+    sellerId = sid;
+    await carregarAnuncios(sid);
+  } catch(e) {
+    setStatus('var(--red)', 'Erro');
+    $('msg-config').innerHTML = `<span style="color:var(--red)">Erro: ${html(e.message)}</span>`;
+    $('btncon').disabled = false;
+  }
+}
+
+// ── Carregar anúncios direto via API ML com token ──
+async function mlFetch(url) {
+  const tok = $('tok').value.trim();
+  const headers = tok ? {'Authorization': 'Bearer '+tok} : {};
+  const r = await fetch(url, {headers});
+  if (!r.ok) throw new Error('API ML erro '+r.status+' em '+url);
+  return r.json();
+}
+
+async function carregarAnuncios(id) {
+  $('a-empty').style.display = 'none';
+  $('a-load').style.display = 'block';
+  $('a-list').style.display = 'none';
+  $('msg-config').innerHTML = '<span class="spin"></span>Carregando anúncios...';
+
+  try {
+    // 1. Busca info do vendedor
+    const userInfo = await mlFetch('https://api.mercadolibre.com/users/'+id);
+    const nickname = userInfo.nickname || 'Rosália Lab';
+
+    // 2. Busca lista de IDs dos anúncios
+    const searchResp = await mlFetch('https://api.mercadolibre.com/users/'+id+'/items/search?limit=50&status=active');
+    const ids = searchResp.results || [];
+
+    if (ids.length === 0) {
+      $('a-load').style.display = 'none';
+      $('a-empty').style.display = 'block';
+      $('a-empty').innerHTML = '<div class="empty-ico">😮</div>Nenhum anúncio ativo encontrado';
+      setStatus('var(--orange)', nickname);
+      $('msg-config').innerHTML = '<span style="color:var(--orange)">Nenhum anúncio encontrado</span>';
+      $('btncon').disabled = false;
+      return;
+    }
+
+    // 3. Busca detalhes em lotes de 20
+    anuncios = [];
+    for (let i = 0; i < ids.length; i += 20) {
+      const chunk = ids.slice(i, i+20);
+      const items = await mlFetch('https://api.mercadolibre.com/items?ids='+chunk.join(',')+'&attributes=id,title,price,thumbnail,category_id,shipping,attributes,pictures,status,permalink,condition');
+      items.forEach(item => { if (item.code===200) anuncios.push(item.body); });
+    }
+
+    anuncios = anuncios.map(item => ({ ...item, _s: score(item) }));
+    filtered = [...anuncios];
+
+    const alertas = anuncios.filter(a => a._s.l==='C').length;
+    const med = anuncios.length ? Math.round(anuncios.reduce((s,a)=>s+a._s.v,0)/anuncios.length) : 0;
+
+    $('s-tot').textContent = anuncios.length;
+    $('s-score').textContent = med+'%';
+    $('s-score').style.color = med>=70?'var(--green)':med>=50?'var(--orange)':'var(--red)';
+    $('s-alert').textContent = alertas;
+    $('stats').style.display = 'grid';
+
+    renderItems();
+    setStatus('var(--green)', nickname);
+    $('msg-config').innerHTML = '<span style="color:var(--green)">✓ '+anuncios.length+' anúncios carregados</span>';
+    $('a-load').style.display = 'none';
+    $('a-list').style.display = 'block';
+    $('btncon').disabled = false;
+
+  } catch(e) {
+    $('a-load').style.display = 'none';
+    $('a-empty').style.display = 'block';
+    $('a-empty').innerHTML = '<div class="empty-ico">⚠️</div>'+html(e.message);
+    $('msg-config').innerHTML = '<span style="color:var(--red)">'+html(e.message)+'</span>';
+    setStatus('var(--red)', 'Erro');
+    $('btncon').disabled = false;
+  }
+}
+
+// ── Render ──
+function renderItems() {
+  const c = $('a-items');
+  if (!filtered.length) { c.innerHTML='<div class="empty"><div class="empty-ico">🔍</div>Nenhum resultado</div>'; return; }
+  c.innerHTML = filtered.map(a => {
+    const fg = a.shipping&&a.shipping.free_shipping;
+    return `<div class="irow" onclick="verDetalhe('${a.id}')">
+      <div class="ithumb">${a.thumbnail?`<img src="${a.thumbnail.replace('http:','https:')}" loading="lazy">`:'🛒'}</div>
+      <div class="iinfo">
+        <div class="ititle">${html(a.title)}</div>
+        <div class="imeta">
+          <span class="iprice">${fmt(a.price)}</span>
+          ${fg?'<span class="pill pill-g">✓ Frete grátis</span>':'<span class="pill pill-r">✗ Sem frete</span>'}
+          <span class="pill ${a._s.l==='A'?'pill-g':a._s.l==='B'?'pill-o':'pill-r'}">Score ${a._s.l} · ${a._s.v}%</span>
+        </div>
+      </div>
+      <div class="sring ${scoreClass(a._s.l)}">${a._s.l}</div>
+    </div>`;
+  }).join('');
+}
+
+function filtrar() {
+  const q=$('a-search').value.toLowerCase(), f=$('a-filter').value;
+  filtered = anuncios.filter(a=>(!q||a.title.toLowerCase().includes(q))&&(!f||a._s.l===f));
+  renderItems();
+}
+
+// ── Detalhe ──
+function verDetalhe(id) {
+  const a = anuncios.find(x=>x.id===id);
+  if (!a) return;
+  const fg=a.shipping&&a.shipping.free_shipping;
+  $('panel-body').innerHTML = `
+    <div style="display:flex;gap:12px;margin-bottom:18px;">
+      <div class="ithumb" style="width:64px;height:64px;">${a.thumbnail?`<img src="${a.thumbnail.replace('http:','https:')}">`:'🛒'}</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;line-height:1.4;margin-bottom:6px;">${html(a.title)}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="iprice">${fmt(a.price)}</span>
+          ${fg?'<span class="pill pill-g">✓ Frete grátis</span>':'<span class="pill pill-r">✗ Sem frete</span>'}
+        </div>
+        <a href="${a.permalink}" target="_blank" style="font-size:11px;color:var(--blue);display:block;margin-top:4px;">Ver no ML ↗</a>
+      </div>
+    </div>
+    <div style="margin-bottom:18px;">
+      <div class="card-title">Score</div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div class="sring ${scoreClass(a._s.l)}" style="width:56px;height:56px;font-size:18px;">${a._s.l}</div>
+        <div style="flex:1">
+          <div style="font-size:20px;font-weight:800;color:${scoreColor(a._s.l)}">${a._s.v}%</div>
+          <div class="bar"><div class="barfill" style="width:${a._s.v}%;background:${scoreColor(a._s.l)};"></div></div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-bottom:18px;">
+      <div class="card-title">Diagnóstico</div>
+      ${a._s.checks.map(c=>`<div class="diag">
+        <div class="dico ${c.ok===1?'dok':c.ok===0.5?'dwarn':'derr'}">${c.ok===1?'✓':c.ok===0.5?'⚠':'✗'}</div>
+        <div><div class="dlabel">${c.l}</div><div class="dtext">${c.t}</div></div>
+      </div>`).join('')}
+    </div>
+    <div style="margin-bottom:18px;">
+      <div class="card-title">Atributos</div>
+      <div>${(a.attributes||[]).slice(0,15).map(x=>`<span class="pill pill-b" style="margin:2px">${html(x.name)}</span>`).join('')||'<span style="color:var(--muted)">Nenhum atributo</span>'}</div>
+    </div>
+    <button class="btn btn-p" style="width:100%;margin-bottom:8px;" onclick="iaItem('${a.id}')">✨ Recomendações com IA</button>
+    <div id="ia-item-${a.id}"></div>`;
+  openPanel();
+}
+
+// ── Buscar categoria ──
+async function buscarCat() {
+  const q=$('q-cat').value.trim();
+  if(!q) return;
+  const d=$('res-cat');
+  d.innerHTML='<div class="load"><span class="spin"></span>Buscando...</div>';
+  try {
+    const data = await mlFetch('https://api.mercadolibre.com/sites/MLB/search?q='+encodeURIComponent(q)+'&limit=10');
+    if (!data||!data.results) throw new Error('Sem resultados');
+    const its=data.results||[];
+    const total=data.paging&&data.paging.total||0;
+    const comFrete=its.filter(i=>i.shipping&&i.shipping.free_shipping).length;
+    const pm=its.length?its.reduce((s,i)=>s+(i.price||0),0)/its.length:0;
+    d.innerHTML=`
+    <div class="g3" style="margin-bottom:14px;">
+      <div class="card stat"><div class="stat-v" style="color:var(--accent)">${total.toLocaleString('pt-BR')}</div><div class="stat-l">Anúncios totais</div></div>
+      <div class="card stat"><div class="stat-v" style="color:var(--blue)">${comFrete}/${its.length}</div><div class="stat-l">Com frete grátis</div></div>
+      <div class="card stat"><div class="stat-v" style="color:var(--green)">${fmt(pm)}</div><div class="stat-l">Preço médio top 10</div></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      ${its.map(function(it,i){ var cls=i<3?'top':''; var img=it.thumbnail?('<img src="'+it.thumbnail.replace('http:','https:')+'">'):'🛒'; var fg=(it.shipping&&it.shipping.free_shipping)?'<span class="pill pill-g" style="font-size:10px">Frete grátis</span>':'<span class="pill pill-r" style="font-size:10px">Sem frete</span>'; var nick=(it.seller&&it.seller.nickname)?html(it.seller.nickname):''; return '<div class="crow"><div class="cpos '+cls+'">#'+(i+1)+'</div><div class="ithumb" style="width:36px;height:36px;">'+img+'</div><div class="cinfo"><div class="ctitle">'+html(it.title||'')+'</div><div style="display:flex;gap:6px;align-items:center;"><span style="font-size:13px;font-weight:700;color:var(--accent)">'+fmt(it.price||0)+'</span>'+fg+'<span style="font-size:11px;color:var(--muted)">'+nick+'</span></div></div></div>'; }).join('')}
+    </div>`;
+  } catch(e) {
+    d.innerHTML=`<div class="empty"><div class="empty-ico">⚠️</div>${html(e.message)}</div>`;
+  }
+}
+
+// ── Concorrentes ──
+async function buscarComp() {
+  const q=$('q-comp').value.trim();
+  if(!q) return;
+  const d=$('res-comp');
+  d.innerHTML='<div class="load"><span class="spin"></span>Analisando concorrentes...</div>';
+  try {
+    const data = await mlFetch('https://api.mercadolibre.com/sites/MLB/search?q='+encodeURIComponent(q)+'&limit=20');
+    const its=data.results||[];
+    const precos=its.map(i=>i.price||0).filter(Boolean).sort((a,b)=>a-b);
+    const pm=precos.length?precos.reduce((s,p)=>s+p,0)/precos.length:0;
+    const fg=its.filter(i=>i.shipping&&i.shipping.free_shipping).length;
+    const sellers={};
+    its.forEach(i=>{
+      const sn=i.seller&&i.seller.nickname;
+      if(!sn) return;
+      if(!sellers[sn]) sellers[sn]={nick:sn,status:i.seller.power_seller_status,count:0};
+      sellers[sn].count++;
+    });
+    const tops=Object.values(sellers).sort((a,b)=>b.count-a.count).slice(0,8);
+    d.innerHTML=`
+    <div class="g3" style="margin-bottom:14px;">
+      <div class="card stat"><div class="stat-v" style="color:var(--accent)">${fmt(pm)}</div><div class="stat-l">Preço médio</div></div>
+      <div class="card stat"><div class="stat-v" style="color:var(--blue)">${precos.length?fmt(precos[0]):'-'} – ${precos.length?fmt(precos[precos.length-1]):'-'}</div><div class="stat-l">Faixa de preço</div></div>
+      <div class="card stat"><div class="stat-v" style="color:var(--green)">${precos.length?Math.round(fg/its.length*100):0}%</div><div class="stat-l">Com frete grátis</div></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;margin-bottom:14px;">
+      ${tops.map(function(s,i){ var cls=i<3?'top':''; var st=s.status==='platinum'?'<span class="pill pill-p">ML Platinum</span>':s.status==='gold'?'<span class="pill pill-o">ML Gold</span>':''; return '<div class="crow"><div class="cpos '+cls+'">#'+(i+1)+'</div><div class="cinfo"><div style="font-size:13px;font-weight:600">'+html(s.nick)+'</div><div style="display:flex;gap:6px;margin-top:2px;"><span class="pill pill-b">'+s.count+' an&#250;cios no top</span>'+st+'</div></div></div>'; }).join('')}
+    </div>
+    <div class="ai-box">
+      <button class="btn btn-p" style="width:100%;" onclick="iaComp('${html(q)}')">✨ Estratégia para vencer esses concorrentes</button>
+      <div id="ia-comp-res"></div>
+    </div>`;
+  } catch(e) {
+    d.innerHTML=`<div class="empty"><div class="empty-ico">⚠️</div>${html(e.message)}</div>`;
+  }
+}
+
+// ── Keywords ──
+async function buscarKw() {
+  const q=$('q-kw').value.trim();
+  if(!q) return;
+  const d=$('res-kw');
+  d.innerHTML='<div class="load"><span class="spin"></span>Analisando palavras-chave...</div>';
+  try {
+    const data = await mlFetch('https://api.mercadolibre.com/sites/MLB/search?q='+encodeURIComponent(q)+'&limit=20');
+    const rawItems = data.results||[];
+    // Extrai palavras frequentes dos títulos
+    const stopwords = ['para','com','sem','uma','uns','dos','das','que','por','não','mais','menos','sobre','como','muito','cada','este','essa','seu','sua'];
+    const freq = {};
+    rawItems.forEach(it => {
+      (it.title||'').toLowerCase().replace(/[^\w\s]/g,'').split(/\s+/)
+        .filter(w=>w.length>3&&!stopwords.includes(w))
+        .forEach(w=>{ freq[w]=(freq[w]||0)+1; });
+    });
+    const pal = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,20).map(([palavra,freq])=>({palavra,freq}));
+    const data2 = { total: data.paging&&data.paging.total||0, palavras: pal, titulos_top5: rawItems.slice(0,5).map(i=>i.title) };
+    const total_kw = data2.total;
+    const meus=anuncios.filter(a=>a.title.toLowerCase().includes(q.toLowerCase().split(' ')[0]));
+    d.innerHTML=`
+    <div class="g2" style="margin-bottom:14px;">
+      <div class="card">
+        <div class="card-title">🔥 Palavras mais usadas no top 20</div>
+        <div>${pal.map(p=>{
+          const pr=meus.some(a=>a.title.toLowerCase().includes(p.palavra));
+          return `<span class="kw ${pr?'kw-p':'kw-m'}" title="${pr?'Presente nos seus títulos':'Ausente'}">${html(p.palavra)} <small>(${p.freq})</small></span>`;
+        }).join('')}</div>
+        <div style="margin-top:10px;font-size:11px;color:var(--muted)"><span style="color:var(--green)">■</span> Presente &nbsp;<span style="color:var(--red)">■</span> Ausente nos seus anúncios</div>
+      </div>
+      <div class="card">
+        <div class="card-title">🏆 Títulos do top 5</div>
+        ${(data.titulos_top5||[]).map((t,i)=>`<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;">#${i+1} ${html(t)}</div>`).join('')}
+      </div>
+    </div>
+    ${meus.length?`<div class="card" style="padding:0;overflow:hidden;margin-bottom:14px;">
+      <div style="padding:12px 16px;"><div class="card-title">📋 Seus anúncios relacionados</div></div>
+      ${meus.slice(0,5).map(a=>`<div class="irow" onclick="verDetalhe('${a.id}')">
+        <div class="ithumb">${a.thumbnail?`<img src="${a.thumbnail.replace('http:','https:')}">`:'🛒'}</div>
+        <div class="iinfo"><div class="ititle">${html(a.title)}</div>
+          <div class="imeta"><span class="iprice">${fmt(a.price)}</span><span class="pill ${a._s.l==='A'?'pill-g':a._s.l==='B'?'pill-o':'pill-r'}">Score ${a._s.l}</span></div>
+        </div></div>`).join('')}
+    </div>`:''}
+    <button class="btn btn-p" onclick="iaKw('${html(q)}')">✨ Estratégia completa de palavras-chave</button>
+    <div id="ia-kw-res" style="margin-top:12px;"></div>`;
+  } catch(e) {
+    d.innerHTML=`<div class="empty"><div class="empty-ico">⚠️</div>${html(e.message)}</div>`;
+  }
+}
+
+// ── Chamadas IA ──
+async function callClaude(prompt) {
+  const r = await fetch(CLAUDE, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-6',
+      max_tokens:2000,
+      tools:[{type:'web_search_20250305',name:'web_search'}],
+      messages:[{role:'user',content:prompt}]
+    })
+  });
+  const d = await r.json();
+  return (d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+}
+
+async function callClaudeJSON(prompt) {
+  const txt = await callClaude(prompt + '\n\nIMPORTANTE: Retorne APENAS o JSON puro, sem markdown, sem backticks, sem explicação.');
+  const clean = txt.replace(/```json|```/g,'').trim();
+  const m = clean.match(/\{[\s\S]*\}/);
+  if (!m) throw new Error('Resposta inválida da IA');
+  return JSON.parse(m[0]);
+}
+
+async function iaItem(id) {
+  const a=anuncios.find(x=>x.id===id);
+  if(!a) return;
+  const d=$(`ia-item-${id}`);
+  d.innerHTML='<div class="ai-box"><div class="ai-lbl">✨ Analisando...</div><div class="load"><span class="spin"></span></div></div>';
+  const txt = await callClaude(`Você é especialista em Mercado Livre. Analise este anúncio e dê recomendações práticas em português:
+
+TÍTULO: "${a.title}" (${a.title.length} chars)
+PREÇO: R$ ${a.price}
+FRETE GRÁTIS: ${a.shipping&&a.shipping.free_shipping?'SIM':'NÃO'}
+FOTOS: ${(a.pictures||[]).length}
+ATRIBUTOS: ${(a.attributes||[]).length}
+SCORE: ${a._s.v}% (${a._s.l})
+
+Responda com:
+1. TÍTULO OTIMIZADO (60-80 chars com melhores palavras-chave)
+2. TOP 3 PROBLEMAS que estão prejudicando o rankeamento
+3. 5 AÇÕES IMEDIATAS para fazer hoje
+4. ESTRATÉGIA DE PREÇO E FRETE
+
+Seja direta e específica.`);
+  d.innerHTML=`<div class="ai-box"><div class="ai-lbl">✨ Análise IA</div><div class="ai-txt">${html(txt)}</div></div>`;
+}
+
+async function iaPortfolio() {
+  if(!anuncios.length) return;
+  const d=$('ia-portfolio');
+  d.innerHTML='<div class="ai-box" style="margin-bottom:14px;"><div class="ai-lbl">✨ Analisando portfólio...</div><div class="load"><span class="spin"></span></div></div>';
+  const med=Math.round(anuncios.reduce((s,a)=>s+a._s.v,0)/anuncios.length);
+  const amostra=anuncios.slice(0,8).map(a=>`- "${a.title}" | R$${a.price} | Score ${a._s.l}(${a._s.v}%) | Frete:${a.shipping&&a.shipping.free_shipping?'sim':'não'} | Fotos:${(a.pictures||[]).length}`).join('\n');
+  const txt=await callClaude(`Você é consultora sênior de marketplace. Analise o portfólio da Rosália Lab:
+
+DADOS:
+- Total: ${anuncios.length} anúncios
+- Score médio: ${med}%
+- Score C (críticos): ${anuncios.filter(a=>a._s.l==='C').length}
+- Sem frete grátis: ${anuncios.filter(a=>!(a.shipping&&a.shipping.free_shipping)).length}
+
+AMOSTRA:
+${amostra}
+
+Gere diagnóstico estratégico com:
+1. SITUAÇÃO ATUAL (2-3 linhas)
+2. TOP 3 PROBLEMAS SISTÊMICOS
+3. PLANO SEMANA 1 (5 ações prioritárias)
+4. ESTRATÉGIA 30-60 DIAS para dominar categorias
+5. QUICK WINS (mudanças em menos de 1h)
+
+Seja direta e prática.`);
+  d.innerHTML=`<div class="ai-box" style="margin-bottom:14px;"><div class="ai-lbl">✨ Diagnóstico estratégico — Rosália Lab</div><div class="ai-txt">${html(txt)}</div></div>`;
+}
+
+async function iaComp(q) {
+  const d=$('ia-comp-res');
+  d.innerHTML='<div class="load" style="padding:12px"><span class="spin"></span>Gerando estratégia...</div>';
+  const txt=await callClaude(`Você é especialista em estratégia de marketplace no Brasil. Para o produto "${q}" no Mercado Livre, pesquise a concorrência atual e gere uma estratégia para a Rosália Lab vencer:
+
+1. POSICIONAMENTO: Como diferenciar
+2. PREÇO IDEAL: Qual recomendar e por quê
+3. FRETE: Estratégia para esta categoria
+4. TÍTULO VENCEDOR: Estrutura ideal
+5. VANTAGEM COMPETITIVA: O que fazer que os concorrentes não fazem
+
+Seja específica e prática.`);
+  d.innerHTML=`<div style="margin-top:12px;"><div class="ai-lbl">✨ Estratégia para "${q}"</div><div class="ai-txt">${html(txt)}</div></div>`;
+}
+
+async function iaKw(q) {
+  const d=$('ia-kw-res');
+  d.innerHTML='<div class="ai-box"><div class="ai-lbl">✨ Gerando estratégia...</div><div class="load"><span class="spin"></span></div></div>';
+  const txt=await callClaude(`Você é especialista em SEO para Mercado Livre e Google Shopping. Pesquise o produto "${q}" no ML Brasil e gere:
+
+1. TÍTULO IDEAL (60-80 chars com melhores palavras-chave)
+2. TOP 10 PALAVRAS-CHAVE mais buscadas para este produto
+3. CAUDA LONGA: 5 combinações com alta intenção de compra e baixa concorrência
+4. PALAVRAS A EVITAR no título
+5. DICA DE INDEXAÇÃO NO GOOGLE SHOPPING
+
+Foco no consumidor brasileiro.`);
+  d.innerHTML=`<div class="ai-box"><div class="ai-lbl">✨ Estratégia de palavras-chave</div><div class="ai-txt">${html(txt)}</div></div>`;
+}
+
+// Auto-conecta ao abrir
+window.onload = () => { setTimeout(conectar, 400); };
+</script>
+</body>
+</html>
